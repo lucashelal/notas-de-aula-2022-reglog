@@ -1,0 +1,45 @@
+---
+title: "Estatística II"
+subtitle: "Notas de Aula: Modelos Binomiais e Poisson"
+author: "Prof. Dr. Lucas Helal"
+phone: "+55 51 3359-8000"
+email: "lhelal@hcpa.edu.br"
+web: "https://www.github.com/lucashelal/"
+address: "Rua Ramiro Barcelos, 2350, Santa Cecília, Porto Alegre, RS, 90035-903, Brasil"
+output: pdf_document
+---
+
+
+
+
+# Sumário
+
+1. [Introdução](#introdução)
+2. [Distribuições Binomiais](#distribuições-binomiais)
+3. [Modelos Binomiais](#modelos-binomiais)
+   + 3.1. [Modelo Binomial Simples](#modelo-binomial-simples)
+   + 3.2. [Modelo Binomial Múltiplo](#modelo-binomial-múltiplo)
+   + 3.3. [Modelo Binomial Logístico](#modelo-binomial-logístico)
+   + 3.4. [Modelo Binomial Logit](#modelo-binomial-logit)
+   + 3.5. [Modelo Binomial Probit](#modelo-binomial-probit)
+   + 3.6. [Modelo Multinominal Logit](#modelo-multinominal-logit)
+   + 3.7. [Modelo Multinominal Probit](#modelo-multinominal-probit)
+4. [Aplicações em Epidemiologia](#aplicações-em-epidemiologia)
+   + 4.1. [Probabilidade de eventos de duas possibilidades do tipo sucesso ou fracasso](#probabilidade-de-eventos-de-duas-possibilidades-do-tipo-sucesso-ou-fracasso)
+   + 4.2. [Modelo de risco relativo](#modelo-de-risco-relativo)
+   + 4.3. [Modelo de risco absoluto](#modelo-de-risco-absoluto)
+   + 4.4. [Estimando chances](#estimando-chances)
+   + 4.5. [Modelos de regressão logística](#modelos-de-regressão-logística)
+   + 4.6. [Modelos de regressão logística multinominal](#modelos-de-regressão-logística-multinominal)
+   + 4.7. [Modelos de regressão logística ordinal](#modelos-de-regressão-logística-ordinal)
+   + 4.8. [Modelos de regressão para alocação de diferentes tratamentos a uma mesma doença](#modelos-de-regressão-para-alocação-de-diferentes-tratamentos-a-uma-mesma-doença)
+   + 4.9. [Modelos de regressão para alocação de diferentes tratamentos para diferentes doenças](#modelos-de-regressão-para-alocação-de-diferentes-tratamentos-para-diferentes-doenças)
+5. [Exercícios](#exercícios)
+6. [Referências](#referências)
+7. [Apêndice](#apêndice)
+   
+# Introdução
+
+```{r child = "introduction.Rmd"}
+```
+

@@ -1,0 +1,39 @@
+% Definindo comandos para metadados a partir do YAML
+\documentclass{article}
+
+\newcommand{\institutiontext}{1}{\textbf{#1}}
+\newcommand{\subtitletext}[1]{\textbf{#1}}
+\newcommand{\departmenttext}[1]{\textbf{#1}}
+\newcommand{\emailtext}[1]{\texttt{#1}}
+\newcommand{\webtext}[1]{\texttt{#1}}
+\newcommand{\addresstext}[1]{#1}
+\newcommand{\phonetext}[1]{#1}
+\newcommand{\officetext}[1]{\textbf{#1}}
+
+\begin{document}
+
+\centering
+% Instituições e Departamento
+\institutiontext{\institution} \\
+\departmenttext{\department} \\
+\vspace{1cm}
+% Título e Subtítulo
+\title{\textbf{\title}}
+\subtitletext{\subtitle}
+\date{\date}
+\maketitle
+\vspace{7cm}
+
+% Autor e detalhes de contato
+\textbf{Autor:} \author \\
+\textbf{Sala:} \officetext{\office} \\
+\textbf{Telefone:} \phonetext{\phone} \\
+\textbf{Email:} \emailtext{\email} \\
+\textbf{Website:} \webtext{\web} \\
+
+\vfill
+
+% Endereço e outros detalhes
+\addresstext{\address}
+
+\end{document}

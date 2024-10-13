@@ -1,0 +1,20 @@
+# Modelos Binomiais, Modelos de Regressão com Distribuição Binomial e Aplicações em Epidemiologia 
+
+As distribuições binomiais são fundamentais na Estatística
+aplicada à Epidemiologia, pois permitem modelar a ocorrência de eventos
+classificados como __sucesso ou falha__ - por exemplo, na comparação de testes diagnósticos; 
+é também poderoso pela robustez algébrica do estimando: o __logito__. 
+
+A robustez de construto do logito se dá por sua característica de ser uma função monótona crescente; pela operação
+com bases logarítimicas, o que otimiza a capacidade computacional em grande magnitude; e por conseguir
+alcançar o conceito de odds, que é uma medida de probabilidade (incerteza) do _sucesso_ em relação ao _fracasso_.
+
+Contra a noção de probabilidade bruta, falar de _chances_ é como pensar nas probabilidades de um evento ocorrer 
+em relação a ele não ocorrer - e que essas duas probabilidades não necessariamente são determinadas pelos mesmos fatores. Por outro lado,
+quantitativamente, comparar chances e probabilidades é uma tarefa mais complexa, pois as chances são tal qual as probabilidade uma medida
+de incerteza; porém, a probabilidade traduz a incerteza como os potenciais eventos dentro de todos os eventos possíveis (incluindo o evento de interesse),
+enquanto as chances colocam a incerteza como uma divisão aritmética entre duas probabilidades. 
+
+Assumir que probabilidades e chances, em suas escalas,
+traduzem a mesma magnitude de incerteza é um erro __que se deve evitar a todo custo__, porque a diferença entre os estimadores pode ser _marginal_ ou
+_muito significativa_, por fatores que já vimos em aula.
