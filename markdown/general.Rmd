@@ -1,6 +1,6 @@
 ---
-title: "Estatística II"
-subtitle: "Notas de Aula: Modelos Binomiais e Poisson"
+title: "Universidade Federal do Rio Grande do Sul (UFRGS)"
+subtitle: "Faculdade de Medicina - Estatística II - Notas de Aula EPI0110/2022 - Doutorado"
 author: "Prof. Dr. Lucas Helal"
 phone: "+55 51 3359-8000"
 email: "lhelal@hcpa.edu.br"
@@ -9,6 +9,9 @@ address: "Rua Ramiro Barcelos, 2350, Santa Cecília, Porto Alegre, RS, 90035-903
 output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 6, error = FALSE)
+```
 
 
 
@@ -38,8 +41,730 @@ output: pdf_document
 6. [Referências](#referências)
 7. [Apêndice](#apêndice)
    
-# Introdução
 
-```{r child = "introduction.Rmd"}
+# Modelos Binomiais, Modelos de Regressão com Distribuição Binomial e Aplicações em Epidemiologia 
+
+As distribuições binomiais são fundamentais na Estatística
+aplicada à Epidemiologia, pois permitem modelar a ocorrência de eventos
+classificados como __sucesso ou falha__ - por exemplo, na comparação de testes diagnósticos; 
+é também poderoso pela robustez algébrica do estimando: o __logito__. 
+
+A robustez de construto do logito se dá por sua característica de ser uma função monótona crescente; pela operação
+com bases logarítimicas, o que otimiza a capacidade computacional em grande magnitude; e por conseguir
+alcançar o conceito de odds, que é uma medida de probabilidade (incerteza) do _sucesso_ em relação ao _fracasso_.
+
+Contra a noção de probabilidade bruta, falar de _chances_ é como pensar nas probabilidades de um evento ocorrer 
+em relação a ele não ocorrer - e que essas duas probabilidades não necessariamente são determinadas pelos mesmos fatores. Por outro lado,
+quantitativamente, comparar chances e probabilidades é uma tarefa mais complexa, pois as chances são tal qual as probabilidade uma medida
+de incerteza; porém, a probabilidade traduz a incerteza como os potenciais eventos dentro de todos os eventos possíveis (incluindo o evento de interesse),
+enquanto as chances colocam a incerteza como uma divisão aritmética entre duas probabilidades. 
+
+Assumir que probabilidades e chances, em suas escalas,
+traduzem a mesma magnitude de incerteza é um erro __que se deve evitar a todo custo__, porque a diferença entre os estimadores pode ser _marginal_ ou
+_muito significativa_, por fatores que já vimos em aula.
+
+## Desfechos Binomiais
+
+Os desfechos binomiais são aqueles que só podem ter em seu espaço amostral dois resultados independentes e mutuamente excludentes: __sucesso__ ou __fracasso__. 
+
+Por sucessos e fracassos entende-se que o sucesso é o evento de interesse, e o fracasso é o evento que não é de interesse. Por exemplo:
+
+- _Evento a ser mensurado_: resultado de um teste diagnóstico para COVID-19.
+- _Resultados possíveis_: a) o teste é __positivo__ (sucesso); b) o teste é __negativo__ (fracasso).
+
+Veja que não há nenhuma outra possibilidade para esse teste, a não ser ser positivo ou negativo. Já uma sorologia para níveis de 
+hemoglobina glicada (HbA1c) em um paciente para diagnóstico de diabetes mellitus tipo 2, por exemplo, por natureza não é binomial: o espectro 
+de valores possíveis é contínuo, e não discreto, virtualmente variando de __0%__ a __100%__ de HbA1c como resultado possível. Importante não 
+confundir a convenção de se _discretizar_ uma variável contínua para fins de diagnóstico, como no caso do T2DM. Assume-se que se a HbA1c
+for maior que __6,5%__, o paciente tem T2DM, e, portanto, é um __sucesso__. Arbitra-se um valor de corte, mas não implica dizer que a distribuição
+de HbA1c é binomial no ser humano.
+
+## O que é uma distribuição binomial?
+
+A distribuição binomial é uma distribuição de probabilidade discreta que descreve o número de sucessos em uma sequência de tentativas de Bernoulli,
+ou seja, tentativas que são independentes e têm uma probabilidade constante de sucesso. 
+
+> Para relembrar:
+
+A __distribuição de Bernoulli__ é uma distribuição de probabilidade discreta que modela um experimento com exatamente dois resultados possíveis:
+__sucesso__ e __fracasso__. Tem um único parâmetro, __p__, que é a probabilidade de sucesso do evento - ou seja, é a esperança matemática
+da distribuição. Costumeiramente, o sucesso é representado por __1__ e o fracasso por __0__, e a utilizamos para descrever situações como:
+
+    - A probabilidade de um paciente _ter_ ou _não ter_ diabetes mellitus tipo 2.
+    - A probabilidade de um teste diagnóstico ser _positivo_ ou _negativo_.
+    - A probabilidade de um paciente _sobreviver_ ou _não sobreviver_ a um procedimento cirúrgico.
+    - A probabilidade de um paciente _ter_ ou _não ter_ uma complicação em pós-operatório.
+  
+__A função densidade de probabilidade da distribuição de Bernoulli é dada por:__
+
+$$
+f(x) = p^x(1-p)^{1-x}
+$$
+
+Onde:
+
+- $x = 0, 1$
+- $p$ é a probabilidade de sucesso.
+- $1-p$ é a probabilidade de fracasso.
+- $f(x)$ é a função densidade de probabilidade.
+
+__O estimador da esperança matemática da distribuição de Bernoulli é dada por:__
+
+$$
+E(X) = p
+$$
+
+onde $E(x)$ é calculado por:
+
+$$
+E(X) = \sum_{x=0}^{1} x \cdot f(x)
+$$
+
+isto é, a soma de todos os valores possíveis de $x$ multiplicados pela função densidade de probabilidade - ou, de forma simplificada,
+a probabilidade de sucesso multiplicada pelo valor de sucesso, mais a probabilidade de fracasso multiplicada pelo valor de fracasso, onde _valor de sucesso e fracasso_ 
+são, respectivamente, __1__ e __0__.
+
+__A variância da distribuição de Bernoulli é dada por:__
+
+$$
+Var(X) = p(1-p)
+$$
+
+onde $Var(X)$ é calculado por:
+
+$$
+Var(X) = \sum_{x=0}^{1} (x - E(X))^2 \cdot f(x)
+$$
+
+isto é, a soma de todos os valores possíveis de $x$ menos a esperança matemática, ao quadrado, multiplicado pela função densidade de probabilidade.
+
+__Visualização gráfica da distribuição de Bernoulli dadas diferentes probabilidades de sucesso para $k$ tentativas:__
+
+O evento de Bernoulli é um evento de uma única tentativa, como jogar uma moeda para cima uma única vez. Já a distribuição de Bernoulli 
+é o conjunto de probabilidades de sucesso e fracassos futuros, dados os resultados dos $k$ eventos de Bernoulli realizado. 
+
+__EXEMPLO PRÁTICO:__
+
+Imagine que você joga uma moeda para cima uma única vez, não viciada. A probabilidade de sucesso (cara) P(cara) é de 0,5 - ou, cotidianamente, 50%.
+Entretanto, se você lançar a mesma moeda para cima 10 vezes, para uma décima primeira tentativa, a probabilidade de sucesso não será mais necessariamente
+0,5.
+
+Seja o vetor A o vetor de número de lançamentos da moeda ($\Omega$) e o vetor B o vetor correspondente ao resultado da tentativa:
+
+```{r, echo = TRUE}
+A <- seq(1, 10, 1)
+B <- rbinom(10, 1, 0.5)
+
+tabelaResultados <- data.frame(A, B)
+tabelaResultados
 ```
+
+Calculando a frequência absoluta e relativa de sucessos e fracassos, temos que:
+
+```{r, echo = TRUE}
+library(tidyverse)
+tabelaResultados |>
+  group_by(B) |>
+  reframe(n = n(), freq = n()/sum(n))
+```
+
+Ou seja, antes do experimento ser realizado - lançar uma moeda não viciada 10 vezes para cima - a esperança de sucesso é de 50%, mas não foi
+efetivamente isso que ocorreu. A frequência de sucessos foi de 60%, e a frequência de fracassos foi de 40%. Em frequência cumulativa, a probabilidade
+se distribui da seguinte maneira. Guardamos agora a frequência cumulativa de sucessos e fracassos para uma probabilidade antecipada de 0,5 em uma tabela,
+e simularemos o experimento mais 5 vezes com probabilidades a priori diferentes, de 0.1, 0.3, 0.7 e 0.9.
+
+```{r, echo = TRUE}
+probabilidadesBernoulli <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+tabelaResultados <- data.frame(A, B)
+```
+
+> Dica de código: para aplicar as diferentes probabilidades, podemos repetir manualmente o código já executado trocando o parâmetro de probabilidade e dando
+> um novo nome para o objeto gerado; ou, podemos criar uma __função__ que itere sobre as probabilidades e aplique o código de forma automática.
+
+A seguir as duas maneiras:
+
+__1. Repetindo o código manualmente:__
+
+```{r, echo = TRUE}
+# Probabilidade 0.1
+B_1 <- rbinom(10, 1, 0.1)
+B_3 <- rbinom(10, 1, 0.3)
+B_5 <- rbinom(10, 1, 0.5)
+B_7 <- rbinom(10, 1, 0.7)
+B_9 <- rbinom(10, 1, 0.9)
+
+tabelaResultados_1 <- data.frame(A, B_1)
+tabelaResultados_3 <- data.frame(A, B_3)
+tabelaResultados_5 <- data.frame(A, B_5)
+tabelaResultados_7 <- data.frame(A, B_7)
+tabelaResultados_9 <- data.frame(A, B_9)
+
+tabelaResultados_1
+tabelaResultados_3
+tabelaResultados_5
+tabelaResultados_7
+tabelaResultados_9
+```
+
+__2. Criando uma função para iterar sobre as probabilidades:__
+
+```{r, echo = TRUE}
+# Função para simular experimentos de Bernoulli
+simulaBernoulli <- function(probabilidades) {
+  for (i in probabilidades) {
+    B <- rbinom(10, 1, i)
+    tabelaResultados <- data.frame(A, B)
+    print(tabelaResultados)
+  }
+}
+
+simulaBernoulli(probabilidadesBernoulli)
+```
+
+Onde: 
+
+    - o objeto `simulaBernoulli` guarda uma função não existente no ambiente de trabalho, criada pelo usuário, por meio do comando `function()`;
+    - dentro do parênteses da função, declaramos que a mesma é funnção de uma variável chamada `probabilidades`, que pode ou não ser pré-definida 
+      no ambiente de trabalho, com $i$ termos;
+    - então, chama-se o loop `for` para iterar sobre os valores de `probabilidades` - isto é, para cada valor na posição $i_1, i_2, \dots$ em `probabilidades`, 
+      aplique a função `rbinom` para gerar 10 valores binomiais com probabilidade $i_j$ de sucesso, e guarde em `B`;
+    - após, a função indica para que se guarde os resultados dos vetores `A` e `B` em um `data.frame` chamado `tabelaResultados`, e imprima o resultado.
+    - a função é fechada, e então chamada para ser executada com o argumento `probabilidadesBernoulli`. 
+    - note que o argumento `probabilidadesBernoulli` não foi previamente definido no ambiente de trabalho - nem pela função, nem pelo usuário. O argumento 
+  `probabilidadesBernoulli` é provocado pelo usuário no momento da chamada da função, podendo ficar livre para atribuir qualquer valor (nome) à saída da função.
+    - a única restrição é que, a partir desse momento, o objeto `probabilidadesBernoulli` passa a existir no ambiente de trabalho, e sempre que for chamado, guardará 
+  o resultado das iterações, já que a linguagem R é tem paradigma funcional e não procedural, e é orientada a objetos, além de que sua tipagem é dinâmica. Isso implica 
+  que sempre que a função for chamada, o objeto `probabilidadesBernoulli` será sobrescrito/modificado com o novo resultado.
+
+__Visualização gráfica da densidade de probabilidade da distribuição de Bernoulli por estratos de probabilidade prévia:__
+
+```{r, echo = FALSE}
+# aproximar a densidade de probabilidade da distribuição de Bernoulli para distribuição normal com média p e variância p(1-p)
+
+densidadeBernoulli <- function(n, p, x) {
+  dbinom(x, n, p)
+}
+
+n <- 10
+p <- 0.5
+x <- seq(0, 10, 1)
+
+plot(x, densidadeBernoulli(n, p, x), type = "h", col = "blue", lwd = 2, xlab = "Número de sucessos", ylab = "Densidade de probabilidade", main = "Densidade de probabilidade da distribuição de Bernoulli")
+```
+
+## E no quê a Distribuição de Bernoulli se relaciona com a Distribuição Binomial e Modelos Logísticos? 
+
+A distribuição binomial é uma __generalização__ da distribuição de Bernoulli, e é utilizada para modelar o número de sucessos em uma sequência de $n$ tentativas. 
+
+> NÃO CONFUNDIR
+
+A distribuição de Bernoulli é utilizada para modelar um único __futuro__ evento de sucesso ou fracasso, enquanto a distribuição binomial é utilizada nos permite
+modelar o número de sucessos e fracassos para __futuras__ tentativas. Para o exemplo da moeda, a distribuição de Bernoulli modela a probabilidade de sucesso exclusivamente dada
+__próxima__ tentativa dadas as $k$ tentativas anteriores. Já a distribuição binomial modela a probabilidade de sucesso e fracasso para as próximas $n$ tentativas (virtualmente __todas__), dadas as $k$ tentativas anterioes.
+
+Isto é particularmente útil para inferência estatística buscando estimar parâmetros populacionais a partir de amostras, que sejam generalizáveis "sem prazo de validade" para a população de interesse. Do ponto de vista matemático, 
+a distribuição binomial é:
+
+- __Discreta__: o número de sucessos em $n$ tentativas é sempre um número inteiro.
+- __Esperança matemática__: $E(X) = n \cdot p$, onde $n$ é o número de tentativas e $p$ é a probabilidade de sucesso. Ou seja, a esperança matemática é influenciada pelo número de tentativas e pela probabilidade de sucesso do evento.
+- __Variância__: $Var(X) = n \cdot p \cdot (1-p)$, onde $n$ é o número de tentativas e $p$ é a probabilidade de sucesso. Ou seja, a variância é influenciada pelo número de tentativas e pela probabilidade de sucesso do evento, com maior peso para a probabilidade de sucesso..
+
+# Distribuição Binomial 
+
+Como dito anteriormente, os modelos de distribuição binomial são uma generalização dos modelos de Bernoulli.
+A distribuição binomial é uma distribuição de probabilidades discreta, assumindo valores inteiros não negativos. 
+
+Se a variável aleatória $X$ segue uma distribuição binomial com parâmetros
+$n \in \mathbb{N}$ e $p \in [0,1]$, denotamos $X \sim B(n,p)$. Isto é, a V.A. $X$ segue 
+uma distribuição de probabilidades binomial, aqui chamada de $B$, explicada pelos parâmetros $n$ e $p$.
+
+## Função de Probabilidade de Massa
+
+A probabilidade de massa de uma distribuição de probabilidades significa 
+a probabilidade de que a variável aleatória assuma um valor específico.
+
+Dado que o contra-domínio da distribuição binomial é finito - $X \in \{0,1,2,...,n\}$, estimar
+a probabilidade de que a V.A. assuma um dos valores possíveis do C.D. é produto da __função probabilidade de massa__.
+
+## Função de Distribuição Acumulada
+
+A função de distribuição acumulada (f.d.a.) de uma distribuição de probabilidades é a probabilidade de que a variável aleatória assuma um valor menor ou igual a um valor específico.
+No caso da distribuição binomial, a f.d.a. se aproxima de uma função beta incompleta regularizada.
+Aqui, podemos chamar a f.d.a. por função cumulativa da distribuição F (caso especial). 
+Sua notação completa se dá por:
+
+$$
+f(k, n, p) = (n-k)\binom{n}{k} \int_{0}^{1-p} t^{n-k-1}(1-t)^k dt
+$$
+
+## Função Densidade de Probabilidade
+
+A função densidade de probabilidade (f.d.p.) de uma distribuição de probabilidades é a derivada da função de distribuição acumulada.
+É provavelmente a função mais importante de uma distribuição de probabilidades, pois é a partir dela que podemos calcular a probabilidade de um intervalo de valores, 
+particularmente em inferência estatística, testes de hipóteses e modelos com população desconhecida. 
+
+Para a distribuição binomial, a f.d.p. tem as seguintes características:
+
+- A f.d.p. não assume valores negativos;
+- A área sob a curva da f.d.p. é igual a 1;
+- Pode ser aproximada por uma distribuição normal, quando $n \to \infty$ e $p \to 0.5$ - i.e., Teorema do Limite Central.
+
+## Representação Gráfica da Distribuição Binomial para diferentes parâmetros (n, p)
+
+A seguir, temos a representação gráfica da distribuição binomial para diferentes valores de $n$ e $p$. Assumamos, primeiramente, $p$ fixo e $n$ variável, sobrepostas em um mesmo gráfico.
+
+```{r}
+# com ggplot2
+
+library(ggplot2)
+
+# parâmetros
+n <- c(10, 20, 30, 40, 50)
+p <- 0.5
+
+# função de probabilidade de massa
+f <- function(k, n, p) {
+  return(choose(n, k) * p^k * (1-p)^(n-k))
+}
+
+# valores de k
+k <- seq(0, max(n), by = 1)
+
+# data frame
+df <- expand.grid(k = k, n = n)
+df$p <- p
+df$f <- mapply(f, df$k, df$n, df$p)
+
+# gráfico
+ggplot(df, aes(x = k, y = f, color = as.factor(n))) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Distribuição Binomial para diferentes valores de n",
+       x = "k", y = "f(k, n, p)") +
+  theme_minimal()
+```
+
+Agora, assumamos $n$ fixo e $p$ variável, sobrepostas em um mesmo gráfico.
+
+```{r}
+# parâmetros
+n <- 20
+p <- c(0.1, 0.2, 0.3, 0.4, 0.5)
+
+# função de probabilidade de massa
+f <- function(k, n, p) {
+  return(choose(n, k) * p^k * (1-p)^(n-k))
+}
+
+# valores de k
+k <- seq(0, n, by = 1)
+
+# data frame
+df <- expand.grid(k = k, p = p)
+df$n <- n
+df$f <- mapply(f, df$k, df$n, df$p)
+
+# gráfico
+ggplot(df, aes(x = k, y = f, color = as.factor(p))) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Distribuição Binomial para diferentes valores de p",
+       x = "k", y = "f(k, n, p)") +
+  theme_minimal()
+```
+
+
+# Modelo Binomial 
+
+Quando V.A. de interesse têm distribuição binomial e 
+deseja-se verificar a associação entre uma ou mais 
+variáveis potenciais preditoras da resposta da V.A., 
+comumente, mas não exclusivamente, recorre-se a modelos 
+de regressão. 
+
+Neste caso, os modelos não são lineares - isto é, o comportamento
+da variável resposta não é linear em relação às variáveis preditoras, 
+diferente da regressão linear simples ou múltipla. Porém, para a estimação, 
+é possível, por meio de transformações, aproximar o modelo a um modelo
+linear.
+
+Não que seja problemática a ausência de linearidade entre as variáveis; a opção por se 
+buscar alternativas para "linearizar" modelos, como neste caso, se dá por razões
+tanto algébricas, quanto computacionais e de interpretação dos resultados, além de
+poder enquadrar os estimandos no Teorema de Gauss-Markov e no Teorema do Limite Central.
+
+## Logito 
+
+Da "linearização" de modelos por meio de intermediários, surge uma nova família de modelos,
+que são os modelos lineares generalizados (GLM). Tal como os binomiais, exemplifica-se o modelo
+de Poisson, que é um caso particular dos GLM; o modelo binomial negativo; o modelo gamma; 
+o modelo logit; o modelo probit; entre outros. A diferença entre LMs e GLMs é que, no primeiro,
+a variável resposta é confrontada com conjuntos de dados que representam as variáveis preditoras e/ou
+confundidoras, e há um método (usualmente numérico, mas pode ser analítico) para a estimação do(s) 
+parâmetro(s) do modelo - como o método dos mínimos quadrados.
+
+Já nos GLMs, a variável resposta é confrontada com um conjunto de dados que representam as variáveis
+preditoras e/ou confundidoras, há um método para a estimação dos parâmetros do modelo, mas adiciona-se
+um recurso algébrico e probabilístico, que é a __função de ligação__. Stricto sensu, a função de ligação
+é uma função que relaciona a média da variável resposta com as variáveis preditoras e/ou confundidoras,
+e é a partir dela que se estima o modelo. A partir da distribuição da V.A. resposta, para uma mesma estratégia de
+regressão, a critério do pesquisador, pode-se escolher diferentes distribuições de probabilidades "intermediárias",
+que, por sua vez, implicam em diferentes resultados para o modelo, já linearizado.
+
+### Definição de Logito
+
+O logito é um artefato algébrico representado por:
+
+$$
+\text{logit}(p) = \log \left( \frac{p}{1-p} \right)
+$$
+
+onde $p \in [0,1]$. Ou seja, o logito é uma __transformação logarítmica__ da 
+razão entre a probabilidade de sucesso e a probabilidade de fracasso.
+
+Na modelagem de eventos do tipo sim/não, o logito surge temporalmente 
+na dedução algébrica para linearizar o modelo, e é uma das funções de ligação
+mais utilizadas em modelos binomiais. Não é novidade que a transformação logarítmica 
+comumente é utilizada para linearizar dados ou tornar dados mais simétricos sem viola-los.
+Com este conjunto de dados simulados para duas variáveis contínuas A e B, que num primeiro momento
+não apresentam relação linear, demonstrarei como a transformação logarítmica consegue fazer isto -
+tanto por inspeção visual, quanto por meio do coeficiente de correlação de Pearson (também exponencializado),
+quanto por meio de um modelo de regressão linear simples e testes de diagnóstico do modelo de regressão.
+
+```{r logito, echo = TRUE, fig.cap = "Transformação logarítmica de dados contínuos"}
+# fake data
+
+set.seed(123)
+A <- rnorm(100, mean = 10, sd = 2)
+B <- rnorm(100, mean = 5, sd = 1)
+
+# plot por ggplot2
+
+library(ggplot2)
+
+df <- data.frame(A, B)
+
+ggplot(df, aes(x = A, y = B)) +
+  geom_point() +
+  labs(title = "Transformação logarítmica de dados contínuos",
+       x = "Variável A",
+       y = "Variável B")
+```
+
+_Correlação de Pearson entre A e B:_
+
+```{r}
+cor(df$A, df$B)
+```
+
+_Coeficiente de Determinação entre A e B:_
+
+```{r}
+cor(df$A, df$B)^2
+```
+
+_Relação entre variância de A e B:_
+
+```{r}
+var(df$A) / var(df$B)
+```
+
+_Modelo de Regressão Linear Simples entre A e B:_
+
+```{r}
+lm1 <- lm(B ~ A, data = df)
+summary(lm1)
+```
+
+_Diagnóstico do Modelo de Regressão Linear Simples entre A e B:_
+
+```{r}
+plot(lm1)
+```
+
+__Agora, aplica-se a transformação logarítmica:__
+
+$$
+\log \left( \frac{B}{A} \right)
+$$
+
+```{r logito2, echo = TRUE, fig.cap = "Transformação logarítmica de dados contínuos"}
+df$logito <- log(df$B / df$A)
+
+ggplot(df, aes(x = A, y = logito)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Transformação logarítmica de dados contínuos",
+       x = "Variável A",
+       y = "Logito")
+```
+
+_Correlação de Pearson entre A e Logito:_
+
+```{r}
+cor(df$A, df$logito)
+```
+
+_Coeficiente de Determinação entre A e Logito:_
+
+```{r}
+cor(df$A, df$logito)^2
+```
+
+_Relação entre variância de A e Logito:_
+
+```{r}
+var(df$A) / var(df$logito)
+```
+
+_Modelo de Regressão Linear Simples entre A e Logito:_
+
+```{r}
+lm2 <- lm(logito ~ A, data = df)
+summary(lm2)
+```
+
+_Diagnóstico do Modelo de Regressão Linear Simples entre A e Logito:_
+
+```{r}
+plot(lm2)
+```
+
+### Conclusão 
+
+#### Contrastes com e sem transformação logarítmica
+
+```{r}
+anova(lm1, lm2)
+```
+
+#### Comparação de modelos
+
+```{r}
+AIC(lm1, lm2)
+```
+
+#### Comparação de ajustes
+
+```{r}
+BIC(lm1, lm2)
+```
+
+#### Diferença entre Coefientes de Correlação de Pearson (absoluta e relativa)
+
+```{r}
+abs(cor(df$A, df$B) - cor(df$A, df$logito))
+cor(df$A, df$logito) / cor(df$A, df$B)
+```
+
+## Regressão Binomial Logit
+
+O modelo de regressão binomial logit é um modelo de regressão que, a partir de uma variável resposta
+binomial, busca-se associar uma ou mais variáveis preditoras e/ou confundidoras à variável resposta.
+
+A função de ligação do modelo binomial logit é o logito, que é uma transformação logarítmica da razão
+entre a probabilidade de sucesso e a probabilidade de fracasso. A partir da função de ligação, é possível
+estimar o modelo de regressão binomial logit, que é um modelo não linear, mas que, por meio de transformações,
+pode ser aproximado a um modelo linear.
+
+Dado que os desfechos são do tipo contagem/frequência, o estimando pode ser exponencializado - isto é, 
+a saída primária do modelo traz a unidade do desfecho em escala logarítmica (logito). Por definição, 
+o logito elevado à base do número de Euler ($\text{logito}^e$) é a razão de chances (odds ratio), que é
+um estimador de associação entre as variáveis preditoras e a variável resposta em escala multiplicativa, 
+sendo a divisão entre a probabilidade de sucesso e a probabilidade de fracasso. 
+
+> Para os exemplos em diante, será usado o seguinte conjunto de dados fictício:
+
+__Dados:__
+
+- `tempo`: tempo de exposição ao fator de risco (em categorias de 10 anos: 0-10, 10-20, 20-30, 30-40)
+- `idade`: idade do indivíduo (em categorias de 10 anos: 50-60, 60-70 e 70-80)
+- `sexo biológico`: sexo biológico do indivíduo (em categorias: m/f)
+- `desfecho`: se o indivíduo desenvolveu IAM ou não (em categorias: sim/não)
+- `fumante`: se o indivíduo é fumante ou não (em categorias: sim/não)
+- `historia_previa`: se o indivíduo tem história prévia de IAM na família ou não (em categorias: sim/não)
+
+O banco de dados deverá ter a seguinte estrutura: o tempo de exposição varia de 0 a 40 anos, com mediana de 30 anos, com maior concentração nos homens e que 
+são da faixa etária de 60-70 (60% da exposição). Dentre os expostos (fumantes), 70% são homens, 30% tem menos dee 60 anos, e deram conta de 70% dos infartos.
+Dentre os pacientes que fizeram IAM, 70% tinham história prévia de IAM na família em primeiro grau. Com base nisso, monta-se o banco com 
+sampling aleatório simples, e atribui-se probabilidades pelo conhecimento da literatura.
+
+```{r}
+# mock data
+
+set.seed(123)
+n <- 1000
+
+tempo <- sample(c(0, 10, 20, 30, 40), n, replace = TRUE, prob = c(0.05, 0.1, 0.15, 0.3, 0.4))
+idade <- sample(c(50, 60, 70, 80), n, replace = TRUE, prob = c(0.1, 0.3, 0.6, 0))
+sexo <- sample(c("m", "f"), n, replace = TRUE, prob = c(0.6, 0.4))
+desfecho <- sample(c("sim", "não"), n, replace = TRUE, prob = c(0.7, 0.3))
+fumante <- sample(c("sim", "não"), n, replace = TRUE, prob = c(0.7, 0.3))
+historia_previa <- sample(c("sim", "não"), n, replace = TRUE, prob = c(0.7, 0.3))
+
+# ajuste de probabilidade para historia previa - dentre iam, 70% tem historia previa
+
+historia_previa[desfecho == "sim"] <- sample(c("sim", "não"), sum(desfecho == "sim"), replace = TRUE, prob = c(0.7, 0.3))
+
+df <- data.frame(tempo, idade, sexo, desfecho, fumante, historia_previa)
+```
+
+__Estrutura do banco de dados:__
+
+```{r}
+head(df)
+```
+
+__Atribuição de 0 ou 1 para as variáveis binárias (mulher == 0, não == 0)__:
+
+```{r}
+df$sexo <- ifelse(df$sexo == "m", 1, 0)
+df$desfecho <- ifelse(df$desfecho == "sim", 1, 0)
+df$fumante <- ifelse(df$fumante == "sim", 1, 0)
+df$historia_previa <- ifelse(df$historia_previa == "sim", 1, 0)
+```
+
+__Distribuição de Frequência das Variáveis:__
+
+```{r}
+table(df$desfecho)
+table(df$fumante)
+table(df$historia_previa)
+```
+
+__Modelo de Regressão Binomial Logit sem história prévia de IAM na família:__
+
+```{r}
+library(MASS)
+
+modelo1 <- glm(desfecho ~ tempo + idade + sexo + fumante, data = df, family = binomial(link = "logit"))
+summary(modelo1)
+```
+
+__Modelo de Regressão Binomial Logit sem história prévia de IAM na família e com interação entre sexo e fumante:__
+
+```{r}
+modelo2 <- glm(desfecho ~ tempo + idade + sexo + fumante + sexo:fumante, data = df, family = binomial(link = "logit"))
+summary(modelo2)
+```
+
+__Modelo de Regressão Binomial Logit com história prévia de IAM na família:__
+
+```{r}
+modelo3 <- glm(desfecho ~ tempo + idade + sexo + fumante + historia_previa, data = df, family = binomial(link = "logit"))
+summary(modelo3)
+```
+
+__Modelo de Regressão Binomial Logit com história prévia de IAM na família e interação história prévia e fumante:__
+
+```{r}
+modelo4 <- glm(desfecho ~ tempo + idade + sexo + fumante + historia_previa + fumante:historia_previa, data = df, family = binomial(link = "logit"))
+summary(modelo4)
+```
+
+__Análise Estratificada por Sexo:__
+
+```{r}
+summary(glm(desfecho ~ tempo + idade + fumante + historia_previa, data = df[df$sexo == 1,], family = binomial(link = "logit")))
+summary(glm(desfecho ~ tempo + idade + fumante + historia_previa, data = df[df$sexo == 0,], family = binomial(link = "logit"))) 
+```
+
+__Análise de Sensibilidade por Subgrupos com teste de interação para análises estratificadas:__
+
+```{r}
+anova(modelo1, modelo2)
+anova(modelo3, modelo4)
+```
+
+__Comparação de Modelos:__
+
+```{r}
+AIC(modelo1, modelo2, modelo3, modelo4)
+BIC(modelo1, modelo2, modelo3, modelo4)
+```
+
+__Comparação de Ajustes:__
+
+```{r}
+anova(modelo1, modelo2)
+anova(modelo3, modelo4)
+```
+
+### Visualização gráfica dos resultados
+
+__Curvas de Probabilidade de IAM por Tempo de Exposição e Idade:__
+
+```{r}
+library(ggplot2)
+
+df$prob <- predict(modelo1, type = "response")
+
+ggplot(df, aes(x = tempo, y = prob, color = as.factor(idade))) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Curvas de Probabilidade de IAM por Tempo de Exposição e Idade",
+       x = "Tempo de Exposição",
+       y = "Probabilidade de IAM") +
+  theme_minimal()
+```
+
+__Curvas de Probabilidade de IAM por Tempo de Exposição e Idade, Estratificadas por Sexo:__
+
+```{r}
+df$prob <- predict(modelo1, type = "response")
+
+ggplot(df, aes(x = tempo, y = prob, color = as.factor(idade))) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~sexo) +
+  labs(title = "Curvas de Probabilidade de IAM por Tempo de Exposição e Idade, Estratificadas por Sexo",
+       x = "Tempo de Exposição",
+       y = "Probabilidade de IAM") +
+  theme_minimal()
+```
+
+## Forest plot de razão de chances (odds ratio) para IAM dos 4 modelos no mesmo gráfico
+
+```{r}
+library(forestplot)
+
+# extração dos coeficientes e intervalos de confiança
+
+coef1 <- coef(modelo1)
+confint1 <- confint(modelo1)
+
+coef2 <- coef(modelo2)
+confint2 <- confint(modelo2)
+
+coef3 <- coef(modelo3)
+confint3 <- confint(modelo3)
+
+coef4 <- coef(modelo4)
+confint4 <- confint(modelo4)
+
+# criação do gráfico
+
+# Create a matrix for labeltext
+# Assuming each model has the same number of coefficients
+num_coef1 <- length(coef1)
+num_coef2 <- length(coef2)
+num_coef3 <- length(coef3)
+num_coef4 <- length(coef4)
+
+# Total number of coefficients
+total_coef <- num_coef1 + num_coef2 + num_coef3 + num_coef4
+
+# Create labeltext matrix with the correct number of rows
+labeltext <- matrix(c(rep("Modelo 1", num_coef1), rep("Modelo 2", num_coef2), rep("Modelo 3", num_coef3), rep("Modelo 4", num_coef4)), ncol = 1)
+
+forestplot(labeltext = labeltext,
+            mean = c(coef1, coef2, coef3, coef4),
+            lower = c(confint1[,1], confint2[,1], confint3[,1], confint4[,1]),
+            upper = c(confint1[,2], confint2[,2], confint3[,2], confint4[,2]),
+            xlab = "Odds Ratio",
+            title = "Forest Plot de Razão de Chances para IAM dos 4 Modelos"
+            )
+```
+
+__onde Modelo 4__ na última linha é a variável história médica pregressa.
 

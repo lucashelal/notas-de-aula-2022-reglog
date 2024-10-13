@@ -1,0 +1,395 @@
+# Modelo Binomial 
+
+Quando V.A. de interesse têm distribuição binomial e 
+deseja-se verificar a associação entre uma ou mais 
+variáveis potenciais preditoras da resposta da V.A., 
+comumente, mas não exclusivamente, recorre-se a modelos 
+de regressão. 
+
+Neste caso, os modelos não são lineares - isto é, o comportamento
+da variável resposta não é linear em relação às variáveis preditoras, 
+diferente da regressão linear simples ou múltipla. Porém, para a estimação, 
+é possível, por meio de transformações, aproximar o modelo a um modelo
+linear.
+
+Não que seja problemática a ausência de linearidade entre as variáveis; a opção por se 
+buscar alternativas para "linearizar" modelos, como neste caso, se dá por razões
+tanto algébricas, quanto computacionais e de interpretação dos resultados, além de
+poder enquadrar os estimandos no Teorema de Gauss-Markov e no Teorema do Limite Central.
+
+## Logito 
+
+Da "linearização" de modelos por meio de intermediários, surge uma nova família de modelos,
+que são os modelos lineares generalizados (GLM). Tal como os binomiais, exemplifica-se o modelo
+de Poisson, que é um caso particular dos GLM; o modelo binomial negativo; o modelo gamma; 
+o modelo logit; o modelo probit; entre outros. A diferença entre LMs e GLMs é que, no primeiro,
+a variável resposta é confrontada com conjuntos de dados que representam as variáveis preditoras e/ou
+confundidoras, e há um método (usualmente numérico, mas pode ser analítico) para a estimação do(s) 
+parâmetro(s) do modelo - como o método dos mínimos quadrados.
+
+Já nos GLMs, a variável resposta é confrontada com um conjunto de dados que representam as variáveis
+preditoras e/ou confundidoras, há um método para a estimação dos parâmetros do modelo, mas adiciona-se
+um recurso algébrico e probabilístico, que é a __função de ligação__. Stricto sensu, a função de ligação
+é uma função que relaciona a média da variável resposta com as variáveis preditoras e/ou confundidoras,
+e é a partir dela que se estima o modelo. A partir da distribuição da V.A. resposta, para uma mesma estratégia de
+regressão, a critério do pesquisador, pode-se escolher diferentes distribuições de probabilidades "intermediárias",
+que, por sua vez, implicam em diferentes resultados para o modelo, já linearizado.
+
+### Definição de Logito
+
+O logito é um artefato algébrico representado por:
+
+$$
+\begin{align}
+\text{logit}(p) &= \log \left( \frac{p}{1-p} \right)
+\end{align}
+$$
+
+onde $p \in [0,1]$. Ou seja, o logito é uma __transformação logarítmica__ da 
+razão entre a probabilidade de sucesso e a probabilidade de fracasso.
+
+Na modelagem de eventos do tipo sim/não, o logito surge temporalmente 
+na dedução algébrica para linearizar o modelo, e é uma das funções de ligação
+mais utilizadas em modelos binomiais. Não é novidade que a transformação logarítmica 
+comumente é utilizada para linearizar dados ou tornar dados mais simétricos sem viola-los.
+Com este conjunto de dados simulados para duas variáveis contínuas A e B, que num primeiro momento
+não apresentam relação linear, demonstrarei como a transformação logarítmica consegue fazer isto -
+tanto por inspeção visual, quanto por meio do coeficiente de correlação de Pearson (também exponencializado),
+quanto por meio de um modelo de regressão linear simples e testes de diagnóstico do modelo de regressão.
+
+```{r logito, echo = TRUE, fig.cap = "Transformação logarítmica de dados contínuos"}
+# fake data
+
+set.seed(123)
+A <- rnorm(100, mean = 10, sd = 2)
+B <- rnorm(100, mean = 5, sd = 1)
+
+# plot por ggplot2
+
+library(ggplot2)
+
+df <- data.frame(A, B)
+
+ggplot(df, aes(x = A, y = B)) +
+  geom_point() +
+  labs(title = "Transformação logarítmica de dados contínuos",
+       x = "Variável A",
+       y = "Variável B")
+```
+
+_Correlação de Pearson entre A e B:_
+
+```{r}
+cor(df$A, df$B)
+```
+
+_Coeficiente de Determinação entre A e B:_
+
+```{r}
+cor(df$A, df$B)^2
+```
+
+_Relação entre variância de A e B:_
+
+```{r}
+var(df$A) / var(df$B)
+```
+
+_Modelo de Regressão Linear Simples entre A e B:_
+
+```{r}
+lm1 <- lm(B ~ A, data = df)
+summary(lm1)
+```
+
+_Diagnóstico do Modelo de Regressão Linear Simples entre A e B:_
+
+```{r}
+plot(lm1)
+```
+
+__Agora, aplica-se a transformação logarítmica:__
+
+$$
+\log \left( \frac{B}{A} \right)
+$$
+
+```{r logito2, echo = TRUE, fig.cap = "Transformação logarítmica de dados contínuos"}
+df$logito <- log(df$B / df$A)
+
+ggplot(df, aes(x = A, y = logito)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Transformação logarítmica de dados contínuos",
+       x = "Variável A",
+       y = "Logito")
+```
+
+_Correlação de Pearson entre A e Logito:_
+
+```{r}
+cor(df$A, df$logito)
+```
+
+_Coeficiente de Determinação entre A e Logito:_
+
+```{r}
+cor(df$A, df$logito)^2
+```
+
+_Relação entre variância de A e Logito:_
+
+```{r}
+var(df$A) / var(df$logito)
+```
+
+_Modelo de Regressão Linear Simples entre A e Logito:_
+
+```{r}
+lm2 <- lm(logito ~ A, data = df)
+summary(lm2)
+```
+
+_Diagnóstico do Modelo de Regressão Linear Simples entre A e Logito:_
+
+```{r}
+plot(lm2)
+```
+
+### Conclusão 
+
+#### Contrastes com e sem transformação logarítmica
+
+```{r}
+anova(lm1, lm2)
+```
+
+#### Comparação de modelos
+
+```{r}
+AIC(lm1, lm2)
+```
+
+#### Comparação de ajustes
+
+```{r}
+BIC(lm1, lm2)
+```
+
+#### Diferença entre Coefientes de Correlação de Pearson (absoluta e relativa)
+
+```{r}
+abs(cor(df$A, df$B) - cor(df$A, df$logito))
+cor(df$A, df$logito) / cor(df$A, df$B)
+```
+
+## Regressão Binomial Logit
+
+O modelo de regressão binomial logit é um modelo de regressão que, a partir de uma variável resposta
+binomial, busca-se associar uma ou mais variáveis preditoras e/ou confundidoras à variável resposta.
+
+A função de ligação do modelo binomial logit é o logito, que é uma transformação logarítmica da razão
+entre a probabilidade de sucesso e a probabilidade de fracasso. A partir da função de ligação, é possível
+estimar o modelo de regressão binomial logit, que é um modelo não linear, mas que, por meio de transformações,
+pode ser aproximado a um modelo linear.
+
+Dado que os desfechos são do tipo contagem/frequência, o estimando pode ser exponencializado - isto é, 
+a saída primária do modelo traz a unidade do desfecho em escala logarítmica (logito). Por definição, 
+o logito elevado à base do número de Euler ($\text{logito}^e$) é a razão de chances (odds ratio), que é
+um estimador de associação entre as variáveis preditoras e a variável resposta em escala multiplicativa, 
+sendo a divisão entre a probabilidade de sucesso e a probabilidade de fracasso. 
+
+> Para os exemplos em diante, será usado o seguinte conjunto de dados fictício:
+
+__Dados:__
+
+- `tempo`: tempo de exposição ao fator de risco (em categorias de 10 anos: 0-10, 10-20, 20-30, 30-40)
+- `idade`: idade do indivíduo (em categorias de 10 anos: 50-60, 60-70 e 70-80)
+- `sexo biológico`: sexo biológico do indivíduo (em categorias: m/f)
+- `desfecho`: se o indivíduo desenvolveu IAM ou não (em categorias: sim/não)
+- `fumante`: se o indivíduo é fumante ou não (em categorias: sim/não)
+- `historia_previa`: se o indivíduo tem história prévia de IAM na família ou não (em categorias: sim/não)
+
+O banco de dados deverá ter a seguinte estrutura: o tempo de exposição varia de 0 a 40 anos, com mediana de 30 anos, com maior concentração nos homens e que 
+são da faixa etária de 60-70 (60% da exposição). Dentre os expostos (fumantes), 70% são homens, 30% tem menos dee 60 anos, e deram conta de 70% dos infartos.
+Dentre os pacientes que fizeram IAM, 70% tinham história prévia de IAM na família em primeiro grau. Com base nisso, monta-se o banco com 
+sampling aleatório simples, e atribui-se probabilidades pelo conhecimento da literatura.
+
+```{r}
+# mock data
+
+set.seed(123)
+n <- 1000
+
+tempo <- sample(c(0, 10, 20, 30, 40), n, replace = TRUE, prob = c(0.05, 0.1, 0.15, 0.3, 0.4))
+idade <- sample(c(50, 60, 70, 80), n, replace = TRUE, prob = c(0.1, 0.3, 0.6, 0))
+sexo <- sample(c("m", "f"), n, replace = TRUE, prob = c(0.6, 0.4))
+desfecho <- sample(c("sim", "não"), n, replace = TRUE, prob = c(0.7, 0.3))
+fumante <- sample(c("sim", "não"), n, replace = TRUE, prob = c(0.7, 0.3))
+historia_previa <- sample(c("sim", "não"), n, replace = TRUE, prob = c(0.7, 0.3))
+
+# ajuste de probabilidade para historia previa - dentre iam, 70% tem historia previa
+
+historia_previa[desfecho == "sim"] <- sample(c("sim", "não"), sum(desfecho == "sim"), replace = TRUE, prob = c(0.7, 0.3))
+
+df <- data.frame(tempo, idade, sexo, desfecho, fumante, historia_previa)
+```
+
+__Estrutura do banco de dados:__
+
+```{r}
+head(df)
+```
+
+__Atribuição de 0 ou 1 para as variáveis binárias (mulher == 0, não == 0)__:
+
+```{r}
+df$sexo <- ifelse(df$sexo == "m", 1, 0)
+df$desfecho <- ifelse(df$desfecho == "sim", 1, 0)
+df$fumante <- ifelse(df$fumante == "sim", 1, 0)
+df$historia_previa <- ifelse(df$historia_previa == "sim", 1, 0)
+```
+
+__Distribuição de Frequência das Variáveis:__
+
+```{r}
+table(df$desfecho)
+table(df$fumante)
+table(df$historia_previa)
+```
+
+__Modelo de Regressão Binomial Logit sem história prévia de IAM na família:__
+
+```{r}
+library(MASS)
+
+modelo1 <- glm(desfecho ~ tempo + idade + sexo + fumante, data = df, family = binomial(link = "logit"))
+summary(modelo1)
+```
+
+__Modelo de Regressão Binomial Logit sem história prévia de IAM na família e com interação entre sexo e fumante:__
+
+```{r}
+modelo2 <- glm(desfecho ~ tempo + idade + sexo + fumante + sexo:fumante, data = df, family = binomial(link = "logit"))
+summary(modelo2)
+```
+
+__Modelo de Regressão Binomial Logit com história prévia de IAM na família:__
+
+```{r}
+modelo3 <- glm(desfecho ~ tempo + idade + sexo + fumante + historia_previa, data = df, family = binomial(link = "logit"))
+summary(modelo3)
+```
+
+__Modelo de Regressão Binomial Logit com história prévia de IAM na família e interação história prévia e fumante:__
+
+```{r}
+modelo4 <- glm(desfecho ~ tempo + idade + sexo + fumante + historia_previa + fumante:historia_previa, data = df, family = binomial(link = "logit"))
+summary(modelo4)
+```
+
+__Análise Estratificada por Sexo:__
+
+```{r}
+summary(glm(desfecho ~ tempo + idade + fumante + historia_previa, data = df[df$sexo == 1,], family = binomial(link = "logit")))
+summary(glm(desfecho ~ tempo + idade + fumante + historia_previa, data = df[df$sexo == 0,], family = binomial(link = "logit"))) 
+```
+
+__Análise de Sensibilidade por Subgrupos com teste de interação para análises estratificadas:__
+
+```{r}
+anova(modelo1, modelo2)
+anova(modelo3, modelo4)
+```
+
+__Comparação de Modelos:__
+
+```{r}
+AIC(modelo1, modelo2, modelo3, modelo4)
+BIC(modelo1, modelo2, modelo3, modelo4)
+```
+
+__Comparação de Ajustes:__
+
+```{r}
+anova(modelo1, modelo2)
+anova(modelo3, modelo4)
+```
+
+### Visualização gráfica dos resultados
+
+__Curvas de Probabilidade de IAM por Tempo de Exposição e Idade:__
+
+```{r}
+library(ggplot2)
+
+df$prob <- predict(modelo1, type = "response")
+
+ggplot(df, aes(x = tempo, y = prob, color = as.factor(idade))) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Curvas de Probabilidade de IAM por Tempo de Exposição e Idade",
+       x = "Tempo de Exposição",
+       y = "Probabilidade de IAM") +
+  theme_minimal()
+```
+
+__Curvas de Probabilidade de IAM por Tempo de Exposição e Idade, Estratificadas por Sexo:__
+
+```{r}
+df$prob <- predict(modelo1, type = "response")
+
+ggplot(df, aes(x = tempo, y = prob, color = as.factor(idade))) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~sexo) +
+  labs(title = "Curvas de Probabilidade de IAM por Tempo de Exposição e Idade, Estratificadas por Sexo",
+       x = "Tempo de Exposição",
+       y = "Probabilidade de IAM") +
+  theme_minimal()
+```
+
+## Forest plot de razão de chances (odds ratio) para IAM dos 4 modelos no mesmo gráfico
+
+```{r}
+library(forestplot)
+
+# extração dos coeficientes e intervalos de confiança
+
+coef1 <- coef(modelo1)
+confint1 <- confint(modelo1)
+
+coef2 <- coef(modelo2)
+confint2 <- confint(modelo2)
+
+coef3 <- coef(modelo3)
+confint3 <- confint(modelo3)
+
+coef4 <- coef(modelo4)
+confint4 <- confint(modelo4)
+
+# criação do gráfico
+
+# Create a matrix for labeltext
+# Assuming each model has the same number of coefficients
+num_coef1 <- length(coef1)
+num_coef2 <- length(coef2)
+num_coef3 <- length(coef3)
+num_coef4 <- length(coef4)
+
+# Total number of coefficients
+total_coef <- num_coef1 + num_coef2 + num_coef3 + num_coef4
+
+# Create labeltext matrix with the correct number of rows
+labeltext <- matrix(c(rep("Modelo 1", num_coef1), rep("Modelo 2", num_coef2), rep("Modelo 3", num_coef3), rep("Modelo 4", num_coef4)), ncol = 1)
+
+forestplot(labeltext = labeltext,
+            mean = c(coef1, coef2, coef3, coef4),
+            lower = c(confint1[,1], confint2[,1], confint3[,1], confint4[,1]),
+            upper = c(confint1[,2], confint2[,2], confint3[,2], confint4[,2]),
+            xlab = "Odds Ratio",
+            title = "Forest Plot de Razão de Chances para IAM dos 4 Modelos"
+            )
+```
+
+__onde Modelo 4__ na última linha é a variável história médica pregressa.
